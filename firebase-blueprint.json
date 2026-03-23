@@ -1,0 +1,128 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "System user with role-based access",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["patient", "doctor", "receptionist"] },
+        "displayName": { "type": "string" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Patient": {
+      "title": "Patient",
+      "description": "Patient profile and contact information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "age": { "type": "number" },
+        "gender": { "type": "string", "enum": ["male", "female", "other"] },
+        "medicalHistory": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "address": { "type": "string" },
+        "insuranceDetails": { "type": "string" }
+      },
+      "required": ["uid", "name"]
+    },
+    "Appointment": {
+      "title": "Appointment",
+      "description": "Appointment booking details",
+      "type": "object",
+      "properties": {
+        "patientId": { "type": "string" },
+        "doctorId": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "time": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "receptionistId": { "type": "string" }
+      },
+      "required": ["patientId", "doctorId", "date", "time", "status"]
+    },
+    "Bill": {
+      "title": "Bill",
+      "description": "Billing and transaction records",
+      "type": "object",
+      "properties": {
+        "patientId": { "type": "string" },
+        "amount": { "type": "number" },
+        "status": { "type": "string", "enum": ["paid", "unpaid"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["patientId", "amount", "status", "createdAt"]
+    },
+    "MedicalRecord": {
+      "title": "MedicalRecord",
+      "description": "Patient clinical diagnosis records",
+      "type": "object",
+      "properties": {
+        "patientId": { "type": "string" },
+        "doctorId": { "type": "string" },
+        "diagnosis": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["patientId", "doctorId", "diagnosis", "createdAt"]
+    },
+    "Prescription": {
+      "title": "Prescription",
+      "description": "Medical prescriptions issued by doctors",
+      "type": "object",
+      "properties": {
+        "patientId": { "type": "string" },
+        "doctorId": { "type": "string" },
+        "medications": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["patientId", "doctorId", "medications", "createdAt"]
+    },
+    "AIPredictionLog": {
+      "title": "AIPredictionLog",
+      "description": "Logs of AI-CDSS predictions and explanations",
+      "type": "object",
+      "properties": {
+        "patientId": { "type": "string" },
+        "doctorId": { "type": "string" },
+        "clinicalData": { "type": "string" },
+        "prediction": { "type": "string" },
+        "confidence": { "type": "number" },
+        "recommendations": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["patientId", "doctorId", "clinicalData", "prediction", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "User",
+      "description": "User account information"
+    },
+    "/patients/{uid}": {
+      "schema": "Patient",
+      "description": "Detailed patient profile"
+    },
+    "/appointments/{appointmentId}": {
+      "schema": "Appointment",
+      "description": "Appointment bookings"
+    },
+    "/bills/{billId}": {
+      "schema": "Bill",
+      "description": "Patient bills"
+    },
+    "/medicalRecords/{recordId}": {
+      "schema": "MedicalRecord",
+      "description": "Clinical records"
+    },
+    "/prescriptions/{prescriptionId}": {
+      "schema": "Prescription",
+      "description": "Doctor prescriptions"
+    },
+    "/aiPredictions/{logId}": {
+      "schema": "AIPredictionLog",
+      "description": "AI-CDSS logs"
+    }
+  }
+}

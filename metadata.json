@@ -1,0 +1,5 @@
+{
+  "name": "MediLink AI Healthcare Platform",
+  "description": "A comprehensive healthcare platform featuring role-based dashboards for Patients, Receptionists, and Doctors, integrated with an AI-based Clinical Decision Support System (AI-CDSS).",
+  "requestFramePermissions": []
+}

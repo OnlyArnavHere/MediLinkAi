@@ -1,0 +1,109 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    // Collection: users
+    // Document ID: uid
+    // Fields: uid, email, role, displayName
+    
+    // Collection: patients
+    // Document ID: uid
+    // Fields: uid, name, age, gender, medicalHistory, phone, email, address, insuranceDetails
+    
+    // Collection: appointments
+    // Document ID: appointmentId
+    // Fields: patientId, doctorId, date, time, status, receptionistId
+    
+    // Collection: bills
+    // Document ID: billId
+    // Fields: patientId, amount, status, createdAt
+    
+    // Collection: medicalRecords
+    // Document ID: recordId
+    // Fields: patientId, doctorId, diagnosis, createdAt
+    
+    // Collection: prescriptions
+    // Document ID: prescriptionId
+    // Fields: patientId, doctorId, medications, createdAt
+    
+    // Collection: aiPredictions
+    // Document ID: logId
+    // Fields: patientId, doctorId, clinicalData, prediction, confidence, recommendations, createdAt
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isRole(role) {
+      return isAuthenticated() && getUserData().role == role;
+    }
+
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (getUserData().role == 'admin' || 
+         (request.auth.token.email == "arnav.tawar@somaiya.edu" && request.auth.token.email_verified == true));
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{uid} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isOwner(uid);
+      allow update: if isAuthenticated() && (isOwner(uid) || isAdmin());
+    }
+
+    match /patients/{uid} {
+      allow read: if isAuthenticated() && (isOwner(uid) || isRole('doctor') || isRole('receptionist'));
+      allow create: if isAuthenticated() && isOwner(uid);
+      allow update: if isAuthenticated() && (isOwner(uid) || isRole('receptionist'));
+    }
+
+    match /appointments/{appointmentId} {
+      allow read: if isAuthenticated() && (
+        request.auth.uid == resource.data.patientId || 
+        request.auth.uid == resource.data.doctorId || 
+        isRole('receptionist')
+      );
+      allow create: if isAuthenticated() && (isRole('patient') || isRole('receptionist'));
+      allow update: if isAuthenticated() && (isRole('receptionist') || isRole('doctor'));
+    }
+
+    match /bills/{billId} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.patientId || isRole('receptionist'));
+      allow create: if isAuthenticated() && isRole('receptionist');
+      allow update: if isAuthenticated() && (isRole('receptionist') || (request.auth.uid == resource.data.patientId && request.resource.data.status == 'paid'));
+    }
+
+    match /medicalRecords/{recordId} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.patientId || request.auth.uid == resource.data.doctorId);
+      allow create: if isAuthenticated() && isRole('doctor');
+      allow update: if isAuthenticated() && isRole('doctor');
+    }
+
+    match /prescriptions/{prescriptionId} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.patientId || request.auth.uid == resource.data.doctorId);
+      allow create: if isAuthenticated() && isRole('doctor');
+      allow update: if isAuthenticated() && isRole('doctor');
+    }
+
+    match /aiPredictions/{logId} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.patientId || request.auth.uid == resource.data.doctorId);
+      allow create: if isAuthenticated() && isRole('doctor');
+    }
+  }
+}
